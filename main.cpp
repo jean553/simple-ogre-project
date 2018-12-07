@@ -1,6 +1,9 @@
 #include "Ogre.h"
 #include "OgreApplicationContext.h"
 
+#include <iostream>
+#include <memory>
+
 class App : public OgreBites::ApplicationContext, public OgreBites::InputListener
 {
     /**
@@ -9,39 +12,108 @@ class App : public OgreBites::ApplicationContext, public OgreBites::InputListene
     void setup()
     {
         OgreBites::ApplicationContext::setup();
-
         addInputListener(this);
 
         Ogre::Root* root = getRoot();
-        Ogre::SceneManager* scnMgr = root->createSceneManager();
+        Ogre::SceneManager* const sceneManager = root->createSceneManager();
 
-        Ogre::RTShader::ShaderGenerator* shadergen = Ogre::RTShader::ShaderGenerator::getSingletonPtr();
-        shadergen->addSceneManager(scnMgr);
+        Ogre::RTShader::ShaderGenerator* const shaderGenerator =
+            Ogre::RTShader::ShaderGenerator::getSingletonPtr();
+        shaderGenerator->addSceneManager(sceneManager);
 
-        Ogre::Light* light = scnMgr->createLight("MainLight");
-        Ogre::SceneNode* lightNode = scnMgr->getRootSceneNode()->createChildSceneNode();
-        lightNode->setPosition(8, -9, 13);
+        Ogre::Light* const light = sceneManager->createLight("light");
+
+        Ogre::Camera* const camera = sceneManager->createCamera("camera");
+        camera->setNearClipDistance(1); 
+        camera->setAutoAspectRatio(true);
+
+        Ogre::Entity* const lamp = sceneManager->createEntity("Circle.mesh");
+
+        constexpr Ogre::Real LIGHT_POSITION_X {8};
+        constexpr Ogre::Real LIGHT_POSITION_Y {-9};
+        constexpr Ogre::Real LIGHT_POSITION_Z {13};
+
+        Ogre::SceneNode* const lightNode = sceneManager->getRootSceneNode()->createChildSceneNode();
+        lightNode->setPosition(
+            LIGHT_POSITION_X,
+            LIGHT_POSITION_Y,
+            LIGHT_POSITION_Z
+        );
         lightNode->attachObject(light);
 
-        Ogre::SceneNode* camNode = scnMgr->getRootSceneNode()->createChildSceneNode();
-        camNode->setPosition(21, -20, 20);
-        camNode->setOrientation(Ogre::Quaternion(Ogre::Degree(63),Ogre::Vector3(1,0,0)));
-        camNode->setOrientation(Ogre::Quaternion(Ogre::Degree(0),Ogre::Vector3(0,1,0)));
-        camNode->setOrientation(Ogre::Quaternion(Ogre::Degree(46),Ogre::Vector3(0,0,1)));
-        camNode->lookAt(Ogre::Vector3(0, 0, 5), Ogre::Node::TS_PARENT);
+        constexpr Ogre::Real CAMERA_POSITION_X {21};
+        constexpr Ogre::Real CAMERA_POSITION_Y {-20};
+        constexpr Ogre::Real CAMERA_POSITION_Z {20};
 
-        Ogre::Camera* cam = scnMgr->createCamera("myCam");
-        cam->setNearClipDistance(1); 
-        cam->setAutoAspectRatio(true);
-        camNode->attachObject(cam);
+        constexpr Ogre::Real CAMERA_ROTATION_X {63};
+        constexpr Ogre::Real CAMERA_ROTATION_Y {0};
+        constexpr Ogre::Real CAMERA_ROTATION_Z {46};
 
-        getRenderWindow()->addViewport(cam);
+        constexpr Ogre::Real CAMERA_LOOK_AT_X {0};
+        constexpr Ogre::Real CAMERA_LOOK_AT_Y {0};
+        constexpr Ogre::Real CAMERA_LOOK_AT_Z {5};
 
-        Ogre::Entity* ent = scnMgr->createEntity("Circle.mesh");
-        Ogre::SceneNode* node = scnMgr->getRootSceneNode()->createChildSceneNode();
-        node->scale(Ogre::Vector3(0.15f, 0.15f, 0.15f));
-        node->setPosition(0, 0, 5);
-        node->attachObject(ent);
+        Ogre::SceneNode* const cameraNode = sceneManager->getRootSceneNode()->createChildSceneNode();
+        cameraNode->setPosition(
+            CAMERA_POSITION_X,
+            CAMERA_POSITION_Y,
+            CAMERA_POSITION_Z
+        );
+
+        cameraNode->setOrientation(
+            Ogre::Quaternion(
+                Ogre::Degree(CAMERA_ROTATION_X),
+                Ogre::Vector3(1,0,0)
+            )
+        );
+        cameraNode->setOrientation(
+            Ogre::Quaternion(
+                Ogre::Degree(CAMERA_ROTATION_Y),
+                Ogre::Vector3(0,1,0)
+            )
+        );
+        cameraNode->setOrientation(
+            Ogre::Quaternion(
+                Ogre::Degree(CAMERA_ROTATION_Z),
+                Ogre::Vector3(0,0,1)
+            )
+        );
+
+        cameraNode->lookAt(
+            Ogre::Vector3(
+                CAMERA_LOOK_AT_X,
+                CAMERA_LOOK_AT_Y,
+                CAMERA_LOOK_AT_Z
+            ),
+            Ogre::Node::TS_PARENT
+        );
+
+        cameraNode->attachObject(camera);
+
+        constexpr Ogre::Real LAMP_POSITION_X {0};
+        constexpr Ogre::Real LAMP_POSITION_Y {0};
+        constexpr Ogre::Real LAMP_POSITION_Z {5};
+
+        constexpr Ogre::Real LAMP_SCALE_X {0.15};
+        constexpr Ogre::Real LAMP_SCALE_Y {0.15};
+        constexpr Ogre::Real LAMP_SCALE_Z {0.15};
+
+        Ogre::SceneNode* const lampNode = sceneManager->getRootSceneNode()->createChildSceneNode();
+        lampNode->scale(
+            Ogre::Vector3(
+                LAMP_SCALE_X,
+                LAMP_SCALE_Y,
+                LAMP_SCALE_Z
+            )
+        );
+        lampNode->setPosition(
+            LAMP_POSITION_X,
+            LAMP_POSITION_Y,
+            LAMP_POSITION_Z
+        );
+        lampNode->attachObject(lamp);
+
+        getRenderWindow()->addViewport(camera);
     }
 };
 
